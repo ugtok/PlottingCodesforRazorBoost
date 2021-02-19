@@ -1,5 +1,6 @@
 #include "CMS_lumi.C"
 
+// root -l purity.C
 pair<double, double> PurityFit(TH1D* chisoFake, TH1D* chisoPrompt, TH1D* chiso, string EBEE, string MRR2Bin){
 	TH1::SetDefaultSumw2();
 
