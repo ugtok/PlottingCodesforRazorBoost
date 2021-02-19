@@ -14,14 +14,15 @@ pair<double, double> PurityFit(TH1D* chisoFake, TH1D* chisoPrompt, TH1D* chiso, 
 	mc->Add(chisoFake);
 	mc->Add(chisoPrompt);
 	fit = new TFractionFitter(chiso,mc);
-	fit->Constrain(0,0.,0.5);
-	fit->Constrain(1,0.5,1.);
+	fit->Constrain(0, 0., 0.99);
+	fit->Constrain(1, 0.01, 1.);
 	double prompt_value=0., prompt_error=0., fake_value=0., fake_error=0.;
 	int status = fit->Fit();
+	std::cout << "fit status: " << status << std::endl;
 	
 	C0->cd();
 	auto leg = new TLegend(0.65,0.55,0.85,0.75);
-	//C0->SetLogy();
+	C0->SetLogy();
 	TLatex l1, l2;
 	l1.SetTextSize(.035);
 	l2.SetTextSize(.035);
@@ -31,38 +32,35 @@ pair<double, double> PurityFit(TH1D* chisoFake, TH1D* chisoPrompt, TH1D* chiso, 
 		result = (TH1F*)fit->GetPlot();
 		fit->GetResult(0, fake_value, fake_error);
 		fit->GetResult(1, prompt_value, prompt_error);
-
+		
 		//cout << "prmpt : " << prompt_value << " fake_value : " << fake_value << endl;
 		purity = (prompt_value/(prompt_value+fake_value));
 		double temp = TMath::Power(fake_value,2)/(TMath::Power(fake_value,2) + TMath::Power(prompt_value,2));
-		cout << "purity ---->" <<purity << "           error------->  " << error <<endl;
+		cout << "purity ---->" <<prompt_value << "           error------->  " << error <<endl;
 		error = TMath::Sqrt(temp*(TMath::Power(prompt_error,2)+TMath::Power(fake_error,2)));
 		
-		chisoPrompt->Scale(prompt_value*result->Integral()/chisoPrompt->Integral());
-		chisoFake->Scale(fake_value*result->Integral()/chisoFake->Integral());
-
-		//auto hs1 = new THStack("hs1","CMS #scale[0.7]{#font[52]{Work in progress 2017}}       #scale[0.7]{41.5 fb^{-1} (13 TeV)}");
+		chisoPrompt->Scale(prompt_value*result->Integral(1,20)/chisoPrompt->Integral(1,20));
+		chisoFake->Scale(fake_value*result->Integral(1,20)/chisoFake->Integral(1,20));
 
 		auto hs1 = new THStack("hs1","");		
 
 		//chisoPrompt->Draw("SAME HIST");
-		chisoFake->SetFillStyle(1001);
-		chisoFake->SetFillColor(2);
-		chisoFake->GetXaxis()->SetTitle("Photon Charged Isolation GeV");
+		chisoFake->SetLineStyle(1);
+		chisoFake->SetLineColor(2);
 		hs1->Add(chisoFake);
-		chisoPrompt->SetLineStyle(1001);
-		chisoPrompt->SetFillColor(8);
-		//chisoPrompt->GetXaxis()->SetTitle("Photon Charged Isolation GeV");
+		chisoPrompt->SetLineStyle(1);
+		chisoPrompt->SetLineColor(8);		
 		//chisoPrompt->SetFillWidth(8);
 		hs1->Add(chisoPrompt);
-		chiso->GetXaxis()->SetTitle("Photon Charged Isolation GeV");
-		chiso->GetYaxis()->SetTitle("Photons - Barrel");
 		chiso->SetMarkerStyle(20);
-		hs1->Draw("HIST");
-		chiso->Draw("SAME PE0");
+		chiso->Draw("l");
+		hs1->Draw("SAME");
+		//chisoPrompt->Draw("HIST");
+		//chisoFake->Draw("SAME HIST");
 		result->Draw("SAME");
+		
 		sprintf( texte1, "purity %.2f, error %.4f ", purity, error);
-		sprintf(texte2, "MR*R2 Bin: %s - %s ", EBEE.c_str(), MRR2Bin.c_str());
+		sprintf(texte2, "MR*R2 Bin: %s ", MRR2Bin.c_str());
 		l1.DrawTextNDC( .45, .50, texte1);
 		l2.DrawTextNDC( .37, .77, texte2);
 
@@ -75,30 +73,30 @@ pair<double, double> PurityFit(TH1D* chisoFake, TH1D* chisoPrompt, TH1D* chiso, 
 	}
 	CMS_lumi(C0, 2, 1);
 	//C0->SetLogx();
-	C0->SaveAs(Form("Plot2017_December_Select_LN/Fraction_Test_%s_%s.pdf", EBEE.c_str(), MRR2Bin.c_str()), "recreate");	
+	C0->SaveAs(Form("Plot2017_Rebined_Exl1Pho_NewBins/Fraction_Test_%s_%s.pdf", EBEE.c_str(), MRR2Bin.c_str()), "recreate");	
 	
-  TFile* f1 = new TFile("./Plot2017_December_Select_LN/test.root", "update");
-  C0->Write();
-  result->Write();
-  f1->Close();
-  C0->Close();
+  //TFile* f1 = new TFile("./Plot2017_Rebined_Exl1Pho_NewBins/test.root", "update");
+  //C0->Write();
+  //result->Write();
+  //f1->Close();
+  //C0->Close();
   cout << purity << ", " << error << endl;
 	return make_pair(purity,error);
 }
 
-pair<TH1D*, TH1D*> Purity2D(TFile* data, TFile* mc, TString year){
+pair<TH1D*, TH1D*> Purity2D(TFile* file,TString year){
 	TH1::SetDefaultSumw2();
 	//template - fake
-	TH2D* htemp0_EB = (TH2D*)data->Get("MRR2NoPho_vs_PhotonCHIso_preslectphoptLN/Data_Barrel_FailSIEIE_"+year+"_CR_1PhoInv_g"); 	//Barrel
-	TH2D* htemp0_EE = (TH2D*)data->Get("MRR2NoPho_vs_PhotonCHIso_preslectphoptLN/Data_Endcap_FailSIEIE_"+year+"_CR_1PhoInv_g"); 	//Endcap
-	//TH2D* htemp1_EB = (TH2D*)mc->Get("MRR2NoPho_vs_PhotonCHIso_preslectphoptLN/MC_FailSIEIE_Barrel_"+year+"_CR_1PhoInv_g");	//Barrel
-	//TH2D* htemp1_EE = (TH2D*)mc->Get("MRR2NoPho_vs_PhotonCHIso_preslectphoptLN/MC_FailSIEIE_Endcap_"+year+"_CR_1PhoInv_g");	//Barrel
+	TH2D* htemp0_EB = (TH2D*)file->Get("MRR2NoPhoBins_vs_PhotonCHIso_preslectphoptREBin/Data_1FakePho_Barrel_CR_1PhoInv_g_Excl1Pho"); 	//Barrel 19764, 2798
+	TH2D* htemp0_EE = (TH2D*)file->Get("MRR2NoPhoBins_vs_PhotonCHIso_preslectphoptREBin/Data_1FakePho_Endcap_CR_1PhoInv_g_Excl1Pho"); 	//Endcap   3, 175
+	//TH2D* htemp1_EB = (TH2D*)mc->Get("MRR2NoPhoBins_vs_PhotonCHIso_preslectphoptREBin/MC_FailSIEIE_Barrel_CR_1PhoInv_g_Excl1Pho");	//Barrel 	
+	//TH2D* htemp1_EE = (TH2D*)mc->Get("MRR2NoPhoBins_vs_PhotonCHIso_preslectphoptREBin/MC_FailSIEIE_Endcap_CR_1PhoInv_g_Excl1Pho");	//Barrel
 	//template - prompt
-	TH2D* htemp2_EB = (TH2D*)mc->Get("MRR2NoPho_vs_PhotonCHIso_preslectphoptLN/MC_Barrel_PassSIEIE_"+year+"_CR_1PhoInv_g");	//Barrel
-	TH2D* htemp2_EE = (TH2D*)mc->Get("MRR2NoPho_vs_PhotonCHIso_preslectphoptLN/MC_Endcap_PassSIEIE_"+year+"_CR_1PhoInv_g");	//Endcap
+	TH2D* htemp2_EB = (TH2D*)file->Get("MRR2NoPhoBins_vs_PhotonCHIso_preslectphoptREBin/MC_Barrel_Prompt_PassSIEIE_CR_1PhoInv_g_Excl1Pho");	//Barrel.   447, 228
+	TH2D* htemp2_EE = (TH2D*)file->Get("MRR2NoPhoBins_vs_PhotonCHIso_preslectphoptREBin/MC_Endcap_Prompt_PassSIEIE_CR_1PhoInv_g_Excl1Pho");	//Endcap.   5587, 1693
 	//fitting target
-	TH2D* htemp3_EB = (TH2D*)data->Get("MRR2NoPho_vs_PhotonCHIso_preslectphoptLN/Data_Barrel_PassSIEIE_"+year+"_CR_1PhoInv_g");	//Barrel (Template)
-	TH2D* htemp3_EE = (TH2D*)data->Get("MRR2NoPho_vs_PhotonCHIso_preslectphoptLN/Data_Endcap_PassSIEIE_"+year+"_CR_1PhoInv_g");	//Endcap (Template)
+	TH2D* htemp3_EB = (TH2D*)file->Get("MRR2NoPhoBins_vs_PhotonCHIso_preslectphoptREBin/Data_Barrel_PassSIEIE_CR_1PhoInv_g_Excl1Pho"); //Barrel (Template)  371, 
+	TH2D* htemp3_EE = (TH2D*)file->Get("MRR2NoPhoBins_vs_PhotonCHIso_preslectphoptREBin/Data_Endcap_PassSIEIE_CR_1PhoInv_g_Excl1Pho"); //Endcap (Template)  3953,
 
 	std::vector<TH1D*> chisoFake_R2_EB;
 	//std::vector<TH1D*> chisoFakeMC_R2_EB;
@@ -110,17 +108,22 @@ pair<TH1D*, TH1D*> Purity2D(TFile* data, TFile* mc, TString year){
 	std::vector<TH1D*> chisoPrompt_R2_EE;
 	std::vector<TH1D*> chiso_R2_EE;
 
+	int nbn_CHISOpt=40, nbn_CHISOptRebin=20, nbn_LNCHISO=16 ;
+	//float bn_CHISOptRebin[] = {0.005,0.05,0.5,0.8,1.,2.,3.,4.,5.,6.,7.,8.,9.,10.,12.,15.,16.,17.,18.,19.,20.};
+	float bn_CHISOptRebin[] = {0.,0.5,1.,1.5,2.,2.5,3.,3.5,4.,4.5,5.,5.5,6.,6.5,7.,7.5,8.,8.5,9.,9.5,10.};
+	//const char *CHISOptRebin[] = {"0.005","0.05","0.5","0.8","1","2","3","4","5","6","7","8","9","10","12","15","16","17","18","19","20"};
+    const char *CHISOptRebin[] = {"0","0.5","1","1.5","2","2.5","3","3.5","4","4.5","5","5.5","6","6.5","7","7.5","8","8.5","9","9.5","10"};
 	for(int i=1;i<=htemp0_EB->GetNbinsY();i++){
 	//Barrel	
-    chisoFake_R2_EB.push_back(new TH1D((std::string("chisoFake_R2_EB_"+to_string(i))).c_str(), "", 20,0,20));
-    //chisoFakeMC_R2_EB.push_back(new TH1D((std::string("chisoFakeMC_R2_EB_"+to_string(i))).c_str(), "", 20,0,20));
-    chisoPrompt_R2_EB.push_back(new TH1D((std::string("chisoPrompt_R2_EB_"+to_string(i))).c_str(), "", 20,0,20));
-    chiso_R2_EB.push_back(new TH1D((std::string("chiso_R2_EB_"+to_string(i))).c_str(), "", 20,0,20));
+    chisoFake_R2_EB.push_back(new TH1D((std::string("chisoFake_R2_EB_"+to_string(i))).c_str(), "", nbn_CHISOptRebin, bn_CHISOptRebin));
+    //chisoFakeMC_R2_EB.push_back(new TH1D((std::string("chisoFakeMC_R2_EB_"+to_string(i))).c_str(), "", nbn_CHISOptRebin, bn_CHISOptRebin));
+    chisoPrompt_R2_EB.push_back(new TH1D((std::string("chisoPrompt_R2_EB_"+to_string(i))).c_str(), "", nbn_CHISOptRebin, bn_CHISOptRebin));
+    chiso_R2_EB.push_back(new TH1D((std::string("chiso_R2_EB_"+to_string(i))).c_str(), "", nbn_CHISOptRebin, bn_CHISOptRebin));
     //Endcap
-    chisoFake_R2_EE.push_back(new TH1D((std::string("chisoFake_R2_EE_"+to_string(i))).c_str(), "", 20,0,20));
-    //chisoFakeMC_R2_EE.push_back(new TH1D((std::string("chisoFakeMC_R2_EE_"+to_string(i))).c_str(), "", 20,0,20));
-    chisoPrompt_R2_EE.push_back(new TH1D((std::string("chisoPrompt_R2_EE_"+to_string(i))).c_str(), "", 20,0,20));
-    chiso_R2_EE.push_back(new TH1D((std::string("chiso_R2_EE_"+to_string(i))).c_str(), "", 20,0,20));
+    chisoFake_R2_EE.push_back(new TH1D((std::string("chisoFake_R2_EE_"+to_string(i))).c_str(), "", nbn_CHISOptRebin, bn_CHISOptRebin));
+    //chisoFakeMC_R2_EE.push_back(new TH1D((std::string("chisoFakeMC_R2_EE_"+to_string(i))).c_str(), "", nbn_CHISOptRebin, bn_CHISOptRebin));
+    chisoPrompt_R2_EE.push_back(new TH1D((std::string("chisoPrompt_R2_EE_"+to_string(i))).c_str(), "", nbn_CHISOptRebin, bn_CHISOptRebin));
+    chiso_R2_EE.push_back(new TH1D((std::string("chiso_R2_EE_"+to_string(i))).c_str(), "", nbn_CHISOptRebin, bn_CHISOptRebin));
 	}
 	
 	cout << "Bins of fake X  " << htemp0_EB->GetNbinsX()<< endl;
@@ -140,6 +143,11 @@ pair<TH1D*, TH1D*> Purity2D(TFile* data, TFile* mc, TString year){
 
       chiso_R2_EB[i-1]->SetBinContent(j,(htemp3_EB->GetBinContent(j,i)));
       chiso_R2_EB[i-1]->SetBinError(j,(htemp3_EB->GetBinError(j,i)));
+      chiso_R2_EB[i-1]->GetXaxis()->SetTitle("Photon Charged Isolation (GeV)");
+      chiso_R2_EB[i-1]->GetXaxis()->LabelsOption("v");
+      chiso_R2_EB[i-1]->GetXaxis()->SetBinLabel(j, CHISOptRebin[j]);;
+      chiso_R2_EB[i-1]->GetYaxis()->SetTitle("Events - Barrel");
+      //chiso_R2_EB[i-1]->GetYaxis()->SetTitleSize(0.1);
 
       // Endcap 
       chisoFake_R2_EE[i-1]->SetBinContent(j,(htemp0_EE->GetBinContent(j,i)));
@@ -153,6 +161,11 @@ pair<TH1D*, TH1D*> Purity2D(TFile* data, TFile* mc, TString year){
 
       chiso_R2_EE[i-1]->SetBinContent(j,(htemp3_EE->GetBinContent(j,i)));
       chiso_R2_EE[i-1]->SetBinError(j,(htemp3_EE->GetBinError(j,i)));
+      chiso_R2_EE[i-1]->GetXaxis()->SetTitle("Photon Charged Isolation (GeV)");
+      chiso_R2_EE[i-1]->GetXaxis()->LabelsOption("v");
+      chiso_R2_EE[i-1]->GetXaxis()->SetBinLabel(j, CHISOptRebin[j]);;
+      chiso_R2_EE[i-1]->GetYaxis()->SetTitle("Events - Endcap");
+
 
 	  //cout << "Bin content "<<i << " " << j << "  "<< log10(htemp0_EB->GetBinContent(j,i))<< endl;
    	  }  
@@ -169,7 +182,8 @@ pair<TH1D*, TH1D*> Purity2D(TFile* data, TFile* mc, TString year){
 	//std::vector<double> error_R2_EE_MC;
 	pair<double, double> result;
 
-	string MRR2Bins[5] = {"0-100", "100-200", "200-300", "300-400", "400-3000"};
+	//string MRR2Bins[5] = {"0-150", "150-200", "200-250", "250-300", "300-3000"};
+	string MRR2Bins[3] = {"0-150", "150-300", "300-3000"};
 	string EBEEs[2] = {"EB", "EE"};
   	cout << "Chiso Fit" << endl;
   	cout << "Size " << chisoFake_R2_EB.size() << endl;
@@ -241,7 +255,7 @@ pair<TH1D*, TH1D*> Purity2D(TFile* data, TFile* mc, TString year){
 	leg->SetBorderSize(0);
 	leg->Draw("SAME");
 	CMS_lumi(C1, 2, 1);
-	C1->SaveAs(Form("Plot2017_December_Select_LN/PurityResults.pdf"), "recreate");
+	C1->SaveAs(Form("Plot2017_Rebined_Exl1Pho_NewBins/PurityResults.pdf"), "recreate");
 
 	return make_pair(hist_R2_EB, hist_R2_EE);
 }
@@ -316,12 +330,9 @@ pair<TH1D*, TH1D*> Fraction(TFile* f1, TString year){
 }
 
 TH1D* Correction(TH1D* purity_EB, TH1D* purity_EE, TH1D* frac_EB, TH1D* frac_EE, TFile* inputfile, TString year){
-  //bckgrnd_0gStyle->SetOptStat(0);
-  //delete gROOT->FindObject("c1");	
+
   gStyle->SetOptTitle(0);
   TH1::SetDefaultSumw2();
-
-  //inputfile = TFile::Open("run_08102020.root");
 
   TH2D* bkg2D[11];
 
@@ -356,13 +367,6 @@ TH1D* Correction(TH1D* purity_EB, TH1D* purity_EE, TH1D* frac_EB, TH1D* frac_EE,
   }
 
   //cout <<"----------Size of 1D ---------------------------->  " << bkg[0]->GetNbinsX()<< endl;
-/*
-  TH1D* htemp_EB = (TH1D*)bkg[1]->Clone();
-  TH1D* htemp_EE = (TH1D*)bkg[0]->Clone();
-
-  htemp_EB->Scale(bkg[10]->Integral()/bkg[8]->Integral());
-  htemp_EB->Scale(bkg[8]->Integral()/bkg[8]->Integral());
-*/
   
   TH1D * h_Npromptdirect = new TH1D("CorrectionFactor", ";MRR2 (GeV)", binsize ,bin);
   double Npromptdirect[binsize];
@@ -434,7 +438,7 @@ TH1D* Correction(TH1D* purity_EB, TH1D* purity_EE, TH1D* frac_EB, TH1D* frac_EE,
   CF->Draw("EP");
   CMS_lumi(c1, 2, 1);
 
-  c1->SaveAs(Form("Plot2017_December_Select_LN/CorrectionFactor_fraction.pdf"), "recreate");
+  c1->SaveAs(Form("Plot2017_Rebined_Exl1Pho_NewBins/CorrectionFactor_fraction.pdf"), "recreate");
 
   return CF;	
 }
@@ -443,12 +447,12 @@ void results(){
 	TCanvas* C1 = new TCanvas("C1", "", 700, 700);
 	TCanvas* C2 = new TCanvas("C2", "", 700, 700);
 
-	inputfile1 = TFile::Open("data2017.root");
-	inputfile2 = TFile::Open("MC2017.root");
-	//inputfile3 = TFile::Open("run_08102020.root");
-	inputfile3 = TFile::Open("run_04122020.root");
+	//inputfile1 = TFile::Open("DATAAA.root");
+	//inputfile2 = TFile::Open("MCCC.root");
+	inputfile2 = TFile::Open("run_20210218.root");
+	inputfile3 = TFile::Open("run_20210107.root");
 
-    TFile* f1  = new TFile("Plot2017_December_Select_LN/CF_GJets2017.root","recreate");
+    TFile* f1  = new TFile("Plot2017_Rebined_Exl1Pho_NewBins/CF_GJets2017.root","recreate");
 	//f1->mkdir("purity");
 	//f1->mkdir("fraction");
 	//f1->mkdir("correction");
@@ -463,7 +467,7 @@ void results(){
 */
 	cout << "purity calculation" << endl;
 
-  	pair<TH1D*, TH1D*> purity_2017 = Purity2D(inputfile1, inputfile2, "2017");
+  	pair<TH1D*, TH1D*> purity_2017 = Purity2D(inputfile2, "2017");
   	TH1D* purity_MRR2_EB_2017 = std::get<0>(purity_2017);
 	TH1D* purity_MRR2_EE_2017 = std::get<1>(purity_2017);
 	
@@ -482,12 +486,12 @@ void results(){
 
   C1->cd();
   purity_MRR2_EE_2017->Draw("EP");
-  C1->SaveAs("Plot2017_December_Select_LN/Purity_EE.pdf", "recreate");
+  C1->SaveAs("Plot2017_Rebined_Exl1Pho_NewBins/Purity_EE.pdf", "recreate");
   C1->Close();
 
   C2->cd();
   purity_MRR2_EB_2017->Draw("EP");
-  C2->SaveAs("Plot2017_December_Select_LN/Purity_EB.pdf", "recreate");
+  C2->SaveAs("Plot2017_Rebined_Exl1Pho_NewBins/Purity_EB.pdf", "recreate");
   C2->Close();
 
 }
