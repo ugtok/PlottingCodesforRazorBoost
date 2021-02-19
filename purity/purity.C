@@ -15,8 +15,8 @@ pair<double, double> PurityFit(TH1D* chisoFake, TH1D* chisoPrompt, TH1D* chiso, 
 	mc->Add(chisoFake);
 	mc->Add(chisoPrompt);
 	fit = new TFractionFitter(chiso,mc);
-	fit->Constrain(0, 0., 0.99);
-	fit->Constrain(1, 0.01, 1.);
+	fit->Constrain(0, 0., 0.5);
+	fit->Constrain(1, 0.5, 1.);
 	double prompt_value=0., prompt_error=0., fake_value=0., fake_error=0.;
 	int status = fit->Fit();
 	std::cout << "fit status: " << status << std::endl;
