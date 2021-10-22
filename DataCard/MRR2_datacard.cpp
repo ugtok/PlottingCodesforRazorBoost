@@ -24,7 +24,11 @@ using namespace std;
 
 
 void UnrolledPlots(string period, TString sample){
-
+  
+  // 23 systematics variations in total
+  string Systematic[] = {"_nom", "_topptUp", "_topptDown",  "_isrUp", "_isrDown", "_pileupUp", "_pileupDown", "_L1PreFiringUp", "_L1PreFiringDown", "_alphasUp", "_alphasDown", "_scaleUp", "_scaleDown", "_lostlepUp", "_lostlepDown", "_triggerUp", "_triggerDown", "_jesUp", "_jesDown", "_jerUp", "_jerDown", "_metUp", "_metDown"}; 
+  int sizeSytematics = sizeof(Systematic)/sizeof(Systematic[0]);
+  
   //29 Signal Regions in total
   string SigRegion[] = {"SR_Had_1htop", "SR_Had_2htop", "SR_Had_V_b_45j", "SR_Had_V_b_6j", "SR_Had_1V_0b_34j", "SR_Had_1V_0b_5j", "SR_Had_2V_0b_24j", "SR_Had_2V_0b_5j", "SR_Had_H_b_45j", "SR_Had_H_b_6j", "SR_Had_2H_b_6j", "SR_Had_HV_b_6j", "SR_Had_1H_0b_34j", "SR_Had_1H_0b_5j", "SR_Had_2H_0b_34j", "SR_Had_2H_0b_5j", "SR_Had_HV_0b_24j", "SR_Had_HV_0b_5j", "SR_Lep_1htop", "SR_Lep_V_b", "SR_Lep_V_0b", "SR_Lep_H_b", "SR_Lep_H_0b", "SR_Leptop_0htop", "SR_Leptop_1htop", "SR_Lepjet_0V_24j", "SR_Lepjet_0V_5j", "SR_Lepjet_1V_24j", "SR_Lepjet_1V_5j"};
   
@@ -202,7 +206,7 @@ for (int i=0; i<2*n_var+1; i++) { //23 number of systematic variations,
     //hist_TPow[i]        = new TH1F(Form("TPow_%d",i) , "", 174,0,174);
     //hist_DY[i]          = new TH1F(Form("DY_%d",i) , "", 174,0,174);
     //hist_Higgs[i]       = new TH1F(Form("Higgs_%d",i) , "", 174,0,174);
-    for (int j=0; j<sizeMassPoints; j++) hist_Sig[i][j] = new TH1F(Form("T5ttcc_%d_MassPoint%s",i,MassPoints[j].c_str()), "", 174,0,174);
+    for (int j=0; j<sizeMassPoints; j++) hist_Sig[i][j] = new TH1F(Form("T5ttcc%s_MassPoint%s",Systematic[i].c_str(),MassPoints[j].c_str()), "", 174,0,174);
   
 }
 
