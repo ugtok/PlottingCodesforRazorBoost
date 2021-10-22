@@ -25,15 +25,9 @@ using namespace std;
 
 void UnrolledPlots(string period, TString sample){
 
-  cout << "period : " << period << endl;
-  //gStyle->SetOptStat(0);
-  //gStyle->SetOptTitle(0);
-  //TH1::SetDefaultSumw2();
-  //TH2::SetDefaultSumw2();
-
-
   //29 Signal Regions in total
   string SigRegion[] = {"SR_Had_1htop", "SR_Had_2htop", "SR_Had_V_b_45j", "SR_Had_V_b_6j", "SR_Had_1V_0b_34j", "SR_Had_1V_0b_5j", "SR_Had_2V_0b_24j", "SR_Had_2V_0b_5j", "SR_Had_H_b_45j", "SR_Had_H_b_6j", "SR_Had_2H_b_6j", "SR_Had_HV_b_6j", "SR_Had_1H_0b_34j", "SR_Had_1H_0b_5j", "SR_Had_2H_0b_34j", "SR_Had_2H_0b_5j", "SR_Had_HV_0b_24j", "SR_Had_HV_0b_5j", "SR_Lep_1htop", "SR_Lep_V_b", "SR_Lep_V_0b", "SR_Lep_H_b", "SR_Lep_H_0b", "SR_Leptop_0htop", "SR_Leptop_1htop", "SR_Lepjet_0V_24j", "SR_Lepjet_0V_5j", "SR_Lepjet_1V_24j", "SR_Lepjet_1V_5j"};
+  
   int sizeRegions = sizeof(SigRegion)/sizeof(SigRegion[0]);
   cout<< " # of Signal Regions ----->  " << sizeRegions <<endl;
 
@@ -209,13 +203,12 @@ for (int i=0; i<2*n_var+1; i++) { //23 number of systematic variations,
     //hist_DY[i]          = new TH1F(Form("DY_%d",i) , "", 174,0,174);
     //hist_Higgs[i]       = new TH1F(Form("Higgs_%d",i) , "", 174,0,174);
     for (int j=0; j<sizeMassPoints; j++) hist_Sig[i][j] = new TH1F(Form("T5ttcc_%d_MassPoint%s",i,MassPoints[j].c_str()), "", 174,0,174);
-
+  
 }
 
 for (int i = 1; i <=2*n_var+1 ; ++i){      // Loop over # of Systematics variations ( 23 )
   for (int j = 1; j <=sizeRegions; ++j){   // Loop over # of Signal Regions         ( 29 )
     for (int m = 0; m < sizeMassPoints; ++m){
-
       for (int k = 0; k < 6; ++k){          // Loop over # of MR*R2 bins             (  6 )
           
           //hist_data[i-1]->SetBinContent((((j-1)*6)+k),data_1D[j-1]->GetBinContent(((i-1)*6)+k));
