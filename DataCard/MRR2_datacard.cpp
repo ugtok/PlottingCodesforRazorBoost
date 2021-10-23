@@ -35,11 +35,11 @@ void UnrolledPlots(string period, TString sample){
   int sizeRegions = sizeof(SigRegion)/sizeof(SigRegion[0]);
   cout<< " # of Signal Regions ----->  " << sizeRegions <<endl;
 
-  string MassPoints[994];
+  string MassPoints[];
   string line;
   int loop = 0; 
 
-  ifstream textfile ("massbins.txt");
+  ifstream textfile ("massbins_T5ttcc.txt");
 
   if(textfile.is_open()){
 
