@@ -34,11 +34,11 @@ void UnrolledPlots(string period, TString sample){
   int sizeRegions = sizeof(SigRegion)/sizeof(SigRegion[0]);
   cout<< " # of Signal Regions ----->  " << sizeRegions <<endl;
 
-  string MassPoints[398];
+  string MassPoints[852];
   string line;
   int loop = 0; 
 
-  ifstream textfile ("massbins_T2bt.txt");
+  ifstream textfile ("massbins_T5qqqqVV.txt");
 
   if(textfile.is_open()){
 
@@ -51,16 +51,16 @@ void UnrolledPlots(string period, TString sample){
   }
 
 int sizeMassPoints = sizeof(MassPoints)/sizeof(MassPoints[0]);
-cout<< " # of MassPoints 1 ------>  " <<MassPoints[0]<<endl;
+cout<< " # of MassPoints 1 ------>  " <<MassPoints[851]<<endl;
 
   TFile* file0 = TFile::Open(sample+"Multijet.root");
   TFile* file1 = TFile::Open(sample+"WJet.root");
   TFile* file2 = TFile::Open(sample+"ZJet.root");
   TFile* file3 = TFile::Open(sample+"Top.root");
-  TFile* file4 = TFile::Open(sample+"other.root");
+  TFile* file4 = TFile::Open(sample+"othet.root");
   TFile* file5 = TFile::Open(sample+"TotMC.root");
-  TFile* fileSig  = TFile::Open("run_2021_10_13_syst.root");
-  TFile* filedata = TFile::Open("run_2021_10_29.root");
+  TFile* fileSig  = TFile::Open(sample+"T5qqqqVV.root");
+  TFile* filedata = TFile::Open(sample+"data.root");
 
   TH2D* data_2D[sizeRegions];
   TH2D* Top_2D[sizeRegions];
@@ -99,12 +99,12 @@ cout<< " # of MassPoints 1 ------>  " <<MassPoints[0]<<endl;
       Top_2D[i]        = (TH2D*)file3->Get(Form("Background/MRR2_bkg_%s", SigRegion[i].c_str()));
       Other_2D[i]      = (TH2D*)file4->Get(Form("Background/MRR2_bkg_%s", SigRegion[i].c_str()));
       TotMC_2D[i]      = (TH2D*)file5->Get(Form("Background/MRR2_bkg_%s", SigRegion[i].c_str()));
-      data_2D[i]       = (TH2D*)filedata->Get(Form("Counts_vs_MRR2Bins/Syst_vs_MRR2Bins/HTMHT_%s_%s", period.c_str(), SigRegion[i].c_str()));
+      data_2D[i]       = (TH2D*)filedata->Get(Form("Data/MRR2_data_%s", SigRegion[i].c_str()));
 
       for (int j=0; j < sizeMassPoints; j++) {
         //Sig_2D[i][j] = (TH2D*)fileSig->Get(Form("Signal/SMS-T2bW_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_%s_%s", SigRegion[i].c_str(), MassPoints[j].c_str()));
         //Sig_2D[i][j] = (TH2D*)fileSig->Get(Form("Signal/SMS-T5qqqqVV_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_%s_%s", SigRegion[i].c_str(), MassPoints[j].c_str()));
-        Sig_2D[i][j] = (TH2D*)fileSig->Get(Form("Signal/SMS-T2bt_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_%s_%s", SigRegion[i].c_str(), MassPoints[j].c_str()));
+        Sig_2D[i][j] = (TH2D*)fileSig->Get(Form("Signal/MRR2_S_signal_%s_%s", SigRegion[i].c_str(), MassPoints[j].c_str()));
         //Sig_2D[i][j] = (TH2D*)fileSig->Get(Form("Signal/SMS-T5ttcc_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_%s_%s", SigRegion[i].c_str(), MassPoints[j].c_str()));
 
       }
@@ -112,7 +112,7 @@ cout<< " # of MassPoints 1 ------>  " <<MassPoints[0]<<endl;
 
   int n_var = (Sig_2D[1][1]->GetNbinsY()-1)/2; //number of variations*2 // number of syst =23, n_var=11, nbiny = 23 , nbinx = 6
 
-  //cout<< " # of Systematic variations --> "<<Top_2D[12]->GetNbinsY()<<endl;
+  cout<< " # of Systematic variations --> "<<WtoL_2D[0]->GetNbinsY()<<endl;
 
   TH1D* Multijet_1D[sizeRegions];
   TH1D* WtoL_1D[sizeRegions];
@@ -217,7 +217,7 @@ for (int i = 0; i < sizeRegions; ++i){
     }
   }
 
-// 1D plots unrolled for each signal region on the MR*R2 bins - 23 1D plots for each MC samples, 23*994 1D plots for the signal.
+// 1D plots unrolled for each signal region on the MR*R2 bins - 23 1D plots for each MC samples, 23*[masspoints] 1D plots for the signal.
 
   TH1F* hist_data[2*n_var+1];
   TH1F* hist_Multijet[2*n_var+1];
@@ -249,8 +249,8 @@ for (int i=0; i<2*n_var+1; i++) { //23 number of systematic variations,
     //hist_Higgs[i]       = new TH1F(Form("Higgs_%d",i) , "", 174,0,174);
 
     //for (int j=0; j<sizeMassPoints; j++) hist_Sig[i][j] = new TH1F(Form("MRR2_S_T2bW%s%s",MassPoints[j].c_str(),Systematic[i].c_str()), "", 174,0,174);
-    //for (int j=0; j<sizeMassPoints; j++) hist_Sig[i][j] = new TH1F(Form("MRR2_S_T5qqqqVV%s%s",MassPoints[j].c_str(),Systematic[i].c_str()), "", 174,0,174);
-    for (int j=0; j<sizeMassPoints; j++) hist_Sig[i][j] = new TH1F(Form("MRR2_S_T2bt%s%s",MassPoints[j].c_str(),Systematic[i].c_str()), "", 174,0,174);
+    for (int j=0; j<sizeMassPoints; j++) hist_Sig[i][j] = new TH1F(Form("MRR2_S_T5qqqqVV%s%s",MassPoints[j].c_str(),Systematic[i].c_str()), "", 174,0,174);
+    //for (int j=0; j<sizeMassPoints; j++) hist_Sig[i][j] = new TH1F(Form("MRR2_S_T2bW%s%s",MassPoints[j].c_str(),Systematic[i].c_str()), "", 174,0,174);
 
 }
 
@@ -316,7 +316,7 @@ for (int i = 1; i <=2*n_var+1 ; ++i){      // Loop over # of Systematics variati
   }
 }
 
-TFile* outFile = new TFile("DataCard_T2bt.root", "recreate"); // For only one simplified model: T5ttcc (can change).
+TFile* outFile = new TFile("DataCard_T5qqqqVV.root", "recreate"); // For only one simplified model: T5ttcc (can change).
 TDirectory* d1 = outFile->mkdir("Multijet");
 TDirectory* d2 = outFile->mkdir("WJet");
 TDirectory* d3 = outFile->mkdir("ZJet");
@@ -361,7 +361,7 @@ TDirectory* d7 = outFile->mkdir("TotMC");
 }
 
 void MRR2_datacard(){
-  UnrolledPlots("2016", "run_2021_10_27_syst/");
+  UnrolledPlots("2016", "run_2021_11_06_syst/");
   //UnrolledPlots("2017", "");
   //UnrolledPlots("2018", "");
 }
