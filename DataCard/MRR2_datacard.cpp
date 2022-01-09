@@ -74,7 +74,7 @@ cout<< " # of MassPoints 1 ------>  " <<MassPoints[851]<<endl;
   //TH2D* TPow_2D[sizeRegions];
   //TH2D* DY_2D[sizeRegions];
   //TH2D* Higgs_2D[sizeRegions];
-  TH2D* Sig_2D[sizeMassPoints][sizeRegions];
+  TH2D* Sig_2D[sizeRegions][sizeMassPoints];
 
   file0->cd();
   for (int i = 0; i < sizeRegions; ++i)
