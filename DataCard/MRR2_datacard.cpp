@@ -355,7 +355,10 @@ TDirectory* d7 = outFile->mkdir("TotMC");
   d7->Close();
 
   for (int i = 0; i <2*n_var+1; ++i) {
-    for (int j=0; j<sizeMassPoints; j++) hist_Sig[i][j]->Write();
+    for (int j=0; j<sizeMassPoints; j++) {
+      hist_Sig[i][j]->Scale(1/1000);
+      hist_Sig[i][j]->Write();
+    } 
   }
 
 }
